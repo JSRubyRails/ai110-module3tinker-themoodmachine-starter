@@ -50,6 +50,14 @@ SAMPLE_POSTS = [
     "This is fine",
     "So excited for the weekend",
     "I am not happy about this",
+    "lowkey exhausted but we move",
+    "no cap this might be the best day of my life",
+    "wow I just LOVE sitting in traffic for two hours",
+    "idk how I feel about all this tbh",
+    "passed the exam but my bank account is crying",
+    "this app is straight up trash and I hate it",
+    "ok the sunset rn is actually kinda healing",
+    "guess I'll just be sad and productive at the same time lol",
 ]
 
 # Human labels for each post above.
@@ -65,6 +73,14 @@ TRUE_LABELS = [
     "neutral",   # "This is fine"
     "positive",  # "So excited for the weekend"
     "negative",  # "I am not happy about this"
+    "mixed",     # "lowkey exhausted but we move" (tired + resilient)
+    "positive",  # "no cap this might be the best day of my life"
+    "negative",  # "wow I just LOVE sitting in traffic for two hours" (sarcasm)
+    "neutral",   # "idk how I feel about all this tbh" (ambiguous/uncertain)
+    "mixed",     # "passed the exam but my bank account is crying" (win + loss)
+    "negative",  # "this app is straight up trash and I hate it"
+    "positive",  # "ok the sunset rn is actually kinda healing"
+    "mixed",     # "guess I'll just be sad and productive at the same time lol"
 ]
 
 # TODO: Add 5-10 more posts and labels.
@@ -92,3 +108,79 @@ TRUE_LABELS = [
 #
 # Remember to keep them aligned:
 #   len(SAMPLE_POSTS) == len(TRUE_LABELS)
+
+
+# ---------------------------------------------------------------------
+# "Breaker" posts
+# ---------------------------------------------------------------------
+#
+# These are deliberately tricky sentences meant to confuse a simple
+# keyword-based model. Each entry is:
+#   (text, intended_label, why_it_breaks_the_model)
+#
+# The rule based MoodAnalyzer only looks up individual words in flat
+# positive/negative lists (plus naive negation), so it has no notion of
+# sarcasm, context, tone, or slang that changes meaning. These cases
+# expose exactly those blind spots.
+
+BREAKER_POSTS = [
+    # --- Sarcasm: positive words, negative intent ---
+    (
+        "I just love getting stuck in traffic for an hour",
+        "negative",
+        "Sarcasm. 'love' scores +1, so the model reads it as positive, "
+        "but the real tone is frustrated.",
+    ),
+    (
+        "Oh great, another Monday. Can't wait.",
+        "negative",
+        "Sarcasm. 'great' scores +1; the model misses the eye-roll tone.",
+    ),
+
+    # --- Slang with multiple meanings ---
+    (
+        "that drop was sick, lowkey the best set all year",
+        "positive",
+        "'sick' here means excellent, but to a literal model it looks like "
+        "an illness word (and it isn't even in the word lists yet).",
+    ),
+    (
+        "the new track is straight fire, no cap",
+        "positive",
+        "'fire' is praise in slang. A literal model sees a neutral/negative "
+        "danger word, not a compliment.",
+    ),
+    (
+        "this weather is wicked today",
+        "positive",
+        "'wicked' flips between 'evil' and 'awesome' depending on region and "
+        "context; the model can only pick one fixed meaning.",
+    ),
+
+    # --- Emojis carrying the real tone ---
+    (
+        "I'm fine 🙂",
+        "negative",
+        "The words read neutral/positive, but the strained 🙂 signals the "
+        "opposite. The model weights words over the emoji's tone.",
+    ),
+    (
+        "great. just great 💀",
+        "negative",
+        "'great' scores positive twice, but 💀 marks it as sarcasm/defeat.",
+    ),
+
+    # --- Mixed emotions in a single sentence ---
+    (
+        "I'm exhausted but honestly so proud of myself",
+        "mixed",
+        "Genuine both-sided feeling. The model only knows 'exhausted'-style "
+        "words if they're in the list, and can't weigh pride against fatigue.",
+    ),
+    (
+        "love my job, hate my hours",
+        "mixed",
+        "Clear positive and negative halves. The +1/-1 cancel to 0, which the "
+        "model may call neutral instead of mixed depending on the word lists.",
+    ),
+]
